@@ -1,0 +1,6 @@
+@PraPdBL_Backend_HostAddress = http://localhost:5154
+
+GET {{PraPdBL_Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
