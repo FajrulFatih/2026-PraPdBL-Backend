@@ -12,7 +12,7 @@ public class BookingStatusHistoryConfiguration
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.ChangedAt)
-            .HasDefaultValueSql("GETDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
         builder.Property(x => x.Note)
             .HasMaxLength(255);

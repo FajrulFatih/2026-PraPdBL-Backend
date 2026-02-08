@@ -21,9 +21,9 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
             .HasDefaultValue(true);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("GETDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
         builder.Property(x => x.UpdatedAt)
-            .HasDefaultValueSql("GETDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
     }
 }

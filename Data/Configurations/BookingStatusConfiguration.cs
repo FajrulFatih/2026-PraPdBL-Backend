@@ -21,6 +21,6 @@ public class BookingStatusConfiguration : IEntityTypeConfiguration<BookingStatus
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("GETDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
     }
 }
