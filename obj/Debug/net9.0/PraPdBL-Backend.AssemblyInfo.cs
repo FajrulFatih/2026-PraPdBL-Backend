@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PraPdBL-Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1900fd94147008653b4cec445c84e6e95d0b640")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+222939bd0e0775bc6fde463169e595c3e1a84c4c")]
 [assembly: System.Reflection.AssemblyProductAttribute("PraPdBL-Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PraPdBL-Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
