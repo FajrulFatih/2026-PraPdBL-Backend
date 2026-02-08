@@ -20,6 +20,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+DbInitializer.SeedAdmin(app.Services);
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
