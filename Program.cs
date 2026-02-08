@@ -2,10 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using Microsoft.EntityFrameworkCore;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using PraPdBL_Backend.Data;
-using PraPdBL_Backend.Validators;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,8 +20,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         )
     );
 });
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<BookingCreateDtoValidator>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
