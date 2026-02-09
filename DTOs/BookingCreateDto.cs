@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using PraPdBL_Backend.Data;
 
-namespace PraPdBL_Backend;
+namespace PraPdBL_Backend.DTOs;
 
 public class BookingCreateDto : IValidatableObject
 {
