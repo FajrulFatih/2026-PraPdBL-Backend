@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace PraPdBL_Backend.DTOs.Users;
+namespace PraPdBL_Backend.DTOs;
 
 public class UserCreateDto
 {
