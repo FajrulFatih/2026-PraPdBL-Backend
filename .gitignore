@@ -8,16 +8,18 @@ yarn.lock
 .env.local
 .env.*.local
 
-
 # IDE
 .vscode/
 .idea/
+.vs/
 *.swp
 *.swo
 *~
 .DS_Store
 
 # Build output
+bin/
+obj/
 dist/
 build/
 *.log
@@ -42,3 +44,9 @@ Thumbs.db
 # Coverage
 coverage/
 .nyc_output/
+
+# .NET tooling
+*.user
+*.suo
+*.userosscache
+*.sln.docstates

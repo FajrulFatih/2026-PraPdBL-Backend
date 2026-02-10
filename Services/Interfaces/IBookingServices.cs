@@ -9,6 +9,7 @@ public interface IBookingService
     Task<(int total, List<Booking> data)> GetAllAsync(int page = 1, int pageSize = 10);
     Task<Booking?> GetByIdAsync(int id);
     Task<Booking?> UpdateAsync(int id, BookingCreateDto dto);
+    Task<(Booking? booking, bool statusNotFound)> UpdateStatusAsync(int id, BookingStatusUpdateDto dto);
     Task<bool> DeleteAsync(int id);
     Task<bool> HasConflictAsync(int roomId, DateTime start, DateTime end, int? excludeId = null);
 }

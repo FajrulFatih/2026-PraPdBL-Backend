@@ -46,6 +46,18 @@ public class BookingController : ControllerBase
         return Ok(updated);
     }
 
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(int id, [FromBody] BookingStatusUpdateDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var (booking, statusNotFound) = await _service.UpdateStatusAsync(id, dto);
+        if (statusNotFound) return BadRequest(new { message = "Status tidak ditemukan." });
+        if (booking == null) return NotFound();
+
+        return Ok(booking);
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
