@@ -16,6 +16,7 @@ public class Room
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
     // Navigation
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
