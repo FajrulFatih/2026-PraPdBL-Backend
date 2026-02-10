@@ -22,6 +22,8 @@ public class BookingStatusHistoryConfiguration
             .HasForeignKey(x => x.BookingId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasQueryFilter(x => x.Booking.DeletedAt == null);
+
         builder.HasOne(x => x.ChangedByUser)
             .WithMany(u => u.StatusHistories)
             .HasForeignKey(x => x.ChangedBy)
