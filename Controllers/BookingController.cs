@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using PraPdBL_Backend.Common.Responses;
 using PraPdBL_Backend.DTOs;
+using PraPdBL_Backend.Models;
 using PraPdBL_Backend.Services.Interfaces;
 
 [ApiController]
@@ -25,7 +27,7 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> GetList([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var (total, data) = await _service.GetAllAsync(page, pageSize);
-        return Ok(new { total, page, pageSize, data });
+        return Ok(new PagedResponse<Booking>(total, page, pageSize, data));
     }
 
     [HttpGet("{id}")]
