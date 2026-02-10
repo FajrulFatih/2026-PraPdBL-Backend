@@ -73,6 +73,48 @@ public class BookingService : IBookingService
         return booking;
     }
 
+    public async Task<(Booking? booking, bool statusNotFound)> UpdateStatusAsync(int id, BookingStatusUpdateDto dto)
+    {
+        var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == id && b.DeletedAt == null);
+        if (booking == null) return (null, false);
+
+        var statusExists = await _db.BookingStatuses.AnyAsync(s => s.Id == dto.StatusId);
+        if (!statusExists) return (null, true);
+
+        var oldStatus = booking.StatusId;
+        if (oldStatus != dto.StatusId)
+        {
+            booking.StatusId = dto.StatusId;
+            booking.UpdatedAt = DateTime.UtcNow;
+
+            var history = new BookingStatusHistory
+            {
+                BookingId = booking.Id,
+                OldStatus = oldStatus,
+                NewStatus = dto.StatusId,
+                ChangedBy = dto.ChangedBy,
+                ChangedAt = DateTime.UtcNow,
+                Note = string.IsNullOrWhiteSpace(dto.Note) ? null : dto.Note.Trim()
+            };
+
+            _db.BookingStatusHistories.Add(history);
+        }
+        else
+        {
+            booking.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+
+        var updated = await _db.Bookings
+            .Include(b => b.Room)
+            .Include(b => b.User)
+            .Include(b => b.Status)
+            .FirstOrDefaultAsync(b => b.Id == id && b.DeletedAt == null);
+
+        return (updated, false);
+    }
+
     public async Task<bool> DeleteAsync(int id)
     {
         var booking = await _db.Bookings.FindAsync(id);
