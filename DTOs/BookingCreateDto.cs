@@ -5,6 +5,8 @@ namespace PraPdBL_Backend.DTOs;
 
 public class BookingCreateDto : IValidatableObject
 {
+    public int? BookingId { get; set; }
+
     [Range(1, int.MaxValue)]
     public int RoomId { get; set; }
 
@@ -42,7 +44,8 @@ public class BookingCreateDto : IValidatableObject
             b => b.RoomId == RoomId
                 && b.DeletedAt == null
                 && b.StartTime < EndTime
-                && b.EndTime > StartTime);
+                && b.EndTime > StartTime
+                && (!BookingId.HasValue || b.Id != BookingId.Value));
 
         if (hasOverlap)
         {
