@@ -29,7 +29,7 @@ public class RoomController : ControllerBase
     public async Task<IActionResult> GetList([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var (total, data) = await _service.GetAllAsync(page, pageSize);
-        return Ok(new PagedResponse<Room>(total, page, pageSize, data));
+        return Ok(new PagedResponse<RoomListItemDto>(total, page, pageSize, data));
     }
 
     [HttpGet("{id}")]

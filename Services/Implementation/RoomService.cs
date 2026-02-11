@@ -42,15 +42,33 @@ public class RoomService : IRoomService
         return (room, false);
     }
 
-    public async Task<(int total, List<Room> data)> GetAllAsync(int page = 1, int pageSize = 10)
+    public async Task<(int total, List<RoomListItemDto> data)> GetAllAsync(int page = 1, int pageSize = 10)
     {
+        var now = DateTime.UtcNow;
         var query = _db.Rooms
             .AsNoTracking()
             .Where(r => r.DeletedAt == null)
             .OrderBy(r => r.RoomName);
 
         var total = await query.CountAsync();
-        var data = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var data = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(r => new RoomListItemDto
+            {
+                Id = r.Id,
+                RoomCode = r.RoomCode,
+                RoomName = r.RoomName,
+                Capacity = r.Capacity,
+                Location = r.Location,
+                IsActive = r.IsActive,
+                BookingStatus = r.Bookings
+                    .Where(b => b.StartTime <= now && b.EndTime >= now)
+                    .OrderByDescending(b => b.StartTime)
+                    .Select(b => b.Status.Label)
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
         return (total, data);
     }
 
