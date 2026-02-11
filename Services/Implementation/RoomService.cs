@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PraPdBL_Backend.Common;
 using PraPdBL_Backend.Data;
 using PraPdBL_Backend.DTOs;
 using PraPdBL_Backend.Models;
@@ -26,6 +27,7 @@ public class RoomService : IRoomService
             .AnyAsync(r => r.DeletedAt == null && r.RoomCode == roomCode);
         if (exists) return (null, true);
 
+        var now = TimeZoneHelper.NowWib();
         var room = new Room
         {
             RoomCode = roomCode,
@@ -33,8 +35,8 @@ public class RoomService : IRoomService
             Capacity = dto.Capacity,
             Location = location,
             IsActive = dto.IsActive,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         _db.Rooms.Add(room);
@@ -44,7 +46,7 @@ public class RoomService : IRoomService
 
     public async Task<(int total, List<RoomListItemDto> data)> GetAllAsync(int page = 1, int pageSize = 10)
     {
-        var now = DateTime.UtcNow;
+        var now = TimeZoneHelper.NowWib();
         var query = _db.Rooms
             .AsNoTracking()
             .Where(r => r.DeletedAt == null)
@@ -98,7 +100,7 @@ public class RoomService : IRoomService
         room.Capacity = dto.Capacity;
         room.Location = location;
         room.IsActive = dto.IsActive;
-        room.UpdatedAt = DateTime.UtcNow;
+        room.UpdatedAt = TimeZoneHelper.NowWib();
 
         await _db.SaveChangesAsync();
         return (room, false);
@@ -109,7 +111,7 @@ public class RoomService : IRoomService
         var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == id && r.DeletedAt == null);
         if (room == null) return false;
 
-        room.DeletedAt = DateTime.UtcNow;
+        room.DeletedAt = TimeZoneHelper.NowWib();
         await _db.SaveChangesAsync();
         return true;
     }
@@ -125,7 +127,7 @@ public class RoomService : IRoomService
         if (exists) return (false, true);
 
         room.DeletedAt = null;
-        room.UpdatedAt = DateTime.UtcNow;
+        room.UpdatedAt = TimeZoneHelper.NowWib();
         await _db.SaveChangesAsync();
         return (true, false);
     }

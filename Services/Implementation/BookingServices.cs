@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PraPdBL_Backend.Common;
 using PraPdBL_Backend.Data;
 using PraPdBL_Backend.Models;
 using PraPdBL_Backend.DTOs;
@@ -17,6 +18,7 @@ public class BookingService : IBookingService
 
     public async Task<Booking> CreateAsync(BookingCreateDto dto)
     {
+        var now = TimeZoneHelper.NowWib();
         var booking = new Booking
         {
             RoomId = dto.RoomId,
@@ -25,8 +27,8 @@ public class BookingService : IBookingService
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
             StatusId = 1, // pending
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         _db.Bookings.Add(booking);
@@ -67,7 +69,7 @@ public class BookingService : IBookingService
         booking.Purpose = dto.Purpose;
         booking.StartTime = dto.StartTime;
         booking.EndTime = dto.EndTime;
-        booking.UpdatedAt = DateTime.UtcNow;
+        booking.UpdatedAt = TimeZoneHelper.NowWib();
 
         await _db.SaveChangesAsync();
         return booking;
@@ -85,7 +87,7 @@ public class BookingService : IBookingService
         if (oldStatus != dto.StatusId)
         {
             booking.StatusId = dto.StatusId;
-            booking.UpdatedAt = DateTime.UtcNow;
+            booking.UpdatedAt = TimeZoneHelper.NowWib();
 
             var history = new BookingStatusHistory
             {
@@ -93,7 +95,7 @@ public class BookingService : IBookingService
                 OldStatus = oldStatus,
                 NewStatus = dto.StatusId,
                 ChangedBy = dto.ChangedBy,
-                ChangedAt = DateTime.UtcNow,
+                ChangedAt = TimeZoneHelper.NowWib(),
                 Note = string.IsNullOrWhiteSpace(dto.Note) ? null : dto.Note.Trim()
             };
 
@@ -101,7 +103,7 @@ public class BookingService : IBookingService
         }
         else
         {
-            booking.UpdatedAt = DateTime.UtcNow;
+            booking.UpdatedAt = TimeZoneHelper.NowWib();
         }
 
         await _db.SaveChangesAsync();
@@ -120,7 +122,7 @@ public class BookingService : IBookingService
         var booking = await _db.Bookings.FindAsync(id);
         if (booking == null || booking.DeletedAt != null) return false;
 
-        booking.DeletedAt = DateTime.UtcNow;
+        booking.DeletedAt = TimeZoneHelper.NowWib();
         await _db.SaveChangesAsync();
         return true;
     }

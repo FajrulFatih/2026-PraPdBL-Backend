@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PraPdBL_Backend.Common;
 using PraPdBL_Backend.Data;
 using PraPdBL_Backend.DTOs;
 using PraPdBL_Backend.Models;
@@ -26,13 +27,14 @@ public class UserService : IUserService
             .AnyAsync(u => u.DeletedAt == null && u.Email == email);
         if (exists) return (null, true);
 
+        var now = TimeZoneHelper.NowWib();
         var user = new User
         {
             Name = name,
             Email = email,
             Role = role,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         _db.Users.Add(user);
@@ -76,7 +78,7 @@ public class UserService : IUserService
         user.Name = name;
         user.Email = email;
         user.Role = role;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = TimeZoneHelper.NowWib();
 
         await _db.SaveChangesAsync();
         return (user, false);
@@ -87,7 +89,7 @@ public class UserService : IUserService
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id && u.DeletedAt == null);
         if (user == null) return false;
 
-        user.DeletedAt = DateTime.UtcNow;
+        user.DeletedAt = TimeZoneHelper.NowWib();
         await _db.SaveChangesAsync();
         return true;
     }
@@ -103,7 +105,7 @@ public class UserService : IUserService
         if (exists) return (false, true);
 
         user.DeletedAt = null;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = TimeZoneHelper.NowWib();
         await _db.SaveChangesAsync();
         return (true, false);
     }
