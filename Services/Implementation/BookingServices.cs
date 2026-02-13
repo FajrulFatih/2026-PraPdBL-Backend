@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PraPdBL_Backend.Common;
 using PraPdBL_Backend.Data;
 using PraPdBL_Backend.Models;
 using PraPdBL_Backend.DTOs;
@@ -17,6 +18,7 @@ public class BookingService : IBookingService
 
     public async Task<Booking> CreateAsync(BookingCreateDto dto)
     {
+        var now = TimeZoneHelper.NowWib();
         var booking = new Booking
         {
             RoomId = dto.RoomId,
@@ -25,8 +27,8 @@ public class BookingService : IBookingService
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
             StatusId = 1, // pending
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         _db.Bookings.Add(booking);
@@ -67,25 +69,31 @@ public class BookingService : IBookingService
         booking.Purpose = dto.Purpose;
         booking.StartTime = dto.StartTime;
         booking.EndTime = dto.EndTime;
-        booking.UpdatedAt = DateTime.UtcNow;
+        booking.UpdatedAt = TimeZoneHelper.NowWib();
 
         await _db.SaveChangesAsync();
         return booking;
     }
 
-    public async Task<(Booking? booking, bool statusNotFound)> UpdateStatusAsync(int id, BookingStatusUpdateDto dto)
+    public async Task<(Booking? booking, bool statusNotFound, bool notAuthorized)> UpdateStatusAsync(int id, BookingStatusUpdateDto dto)
     {
         var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == id && b.DeletedAt == null);
-        if (booking == null) return (null, false);
+        if (booking == null) return (null, false, false);
 
         var statusExists = await _db.BookingStatuses.AnyAsync(s => s.Id == dto.StatusId);
-        if (!statusExists) return (null, true);
+        if (!statusExists) return (null, true, false);
+
+        var changedByUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == dto.ChangedBy && u.DeletedAt == null);
+        if (changedByUser == null || !string.Equals(changedByUser.Role, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        {
+            return (null, false, true);
+        }
 
         var oldStatus = booking.StatusId;
         if (oldStatus != dto.StatusId)
         {
             booking.StatusId = dto.StatusId;
-            booking.UpdatedAt = DateTime.UtcNow;
+            booking.UpdatedAt = TimeZoneHelper.NowWib();
 
             var history = new BookingStatusHistory
             {
@@ -93,7 +101,7 @@ public class BookingService : IBookingService
                 OldStatus = oldStatus,
                 NewStatus = dto.StatusId,
                 ChangedBy = dto.ChangedBy,
-                ChangedAt = DateTime.UtcNow,
+                ChangedAt = TimeZoneHelper.NowWib(),
                 Note = string.IsNullOrWhiteSpace(dto.Note) ? null : dto.Note.Trim()
             };
 
@@ -101,7 +109,7 @@ public class BookingService : IBookingService
         }
         else
         {
-            booking.UpdatedAt = DateTime.UtcNow;
+            booking.UpdatedAt = TimeZoneHelper.NowWib();
         }
 
         await _db.SaveChangesAsync();
@@ -112,7 +120,61 @@ public class BookingService : IBookingService
             .Include(b => b.Status)
             .FirstOrDefaultAsync(b => b.Id == id && b.DeletedAt == null);
 
-        return (updated, false);
+        return (updated, false, false);
+    }
+
+    public async Task<List<BookingStatusHistoryDto>> GetStatusHistoryAsync()
+    {
+        var histories = await _db.BookingStatusHistories
+            .AsNoTracking()
+            .Include(h => h.Booking)
+            .ThenInclude(b => b.Room)
+            .Include(h => h.Booking)
+            .ThenInclude(b => b.User)
+            .Include(h => h.ChangedByUser)
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => new BookingStatusHistoryDto
+            {
+                Id = h.Id,
+                BookingId = h.BookingId,
+                OldStatusId = h.OldStatus,
+                NewStatusId = h.NewStatus,
+                ChangedById = h.ChangedBy,
+                ChangedByName = h.ChangedByUser.Name,
+                ChangedAt = h.ChangedAt,
+                Note = h.Note,
+                Room = new BookingHistoryRoomDto
+                {
+                    Id = h.Booking.RoomId,
+                    Code = h.Booking.Room.RoomCode,
+                    Name = h.Booking.Room.RoomName
+                },
+                User = new BookingHistoryUserDto
+                {
+                    Id = h.Booking.UserId,
+                    Name = h.Booking.User.Name
+                }
+            })
+            .ToListAsync();
+
+        var statusMap = await _db.BookingStatuses
+            .AsNoTracking()
+            .ToDictionaryAsync(s => s.Id, s => s.Label);
+
+        foreach (var item in histories)
+        {
+            if (statusMap.TryGetValue(item.OldStatusId, out var oldLabel))
+            {
+                item.OldStatusLabel = oldLabel;
+            }
+
+            if (statusMap.TryGetValue(item.NewStatusId, out var newLabel))
+            {
+                item.NewStatusLabel = newLabel;
+            }
+        }
+
+        return histories;
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -120,7 +182,7 @@ public class BookingService : IBookingService
         var booking = await _db.Bookings.FindAsync(id);
         if (booking == null || booking.DeletedAt != null) return false;
 
-        booking.DeletedAt = DateTime.UtcNow;
+        booking.DeletedAt = TimeZoneHelper.NowWib();
         await _db.SaveChangesAsync();
         return true;
     }

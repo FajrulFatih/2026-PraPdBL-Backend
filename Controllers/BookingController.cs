@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using PraPdBL_Backend.Common.Responses;
 using PraPdBL_Backend.DTOs;
+using PraPdBL_Backend.Models;
 using PraPdBL_Backend.Services.Interfaces;
 
 [ApiController]
@@ -25,7 +27,7 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> GetList([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var (total, data) = await _service.GetAllAsync(page, pageSize);
-        return Ok(new { total, page, pageSize, data });
+        return Ok(new PagedResponse<Booking>(total, page, pageSize, data));
     }
 
     [HttpGet("{id}")]
@@ -51,11 +53,19 @@ public class BookingController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var (booking, statusNotFound) = await _service.UpdateStatusAsync(id, dto);
+        var (booking, statusNotFound, notAuthorized) = await _service.UpdateStatusAsync(id, dto);
         if (statusNotFound) return BadRequest(new { message = "Status tidak ditemukan." });
+        if (notAuthorized) return StatusCode(403, new { message = "Hanya admin yang dapat mengubah status." });
         if (booking == null) return NotFound();
 
         return Ok(booking);
+    }
+
+    [HttpGet("history")]
+    public async Task<IActionResult> GetHistory()
+    {
+        var data = await _service.GetStatusHistoryAsync();
+        return Ok(data);
     }
 
     [HttpDelete("{id}")]

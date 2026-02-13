@@ -17,6 +17,9 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(x => x.RoomName)
             .IsRequired();
 
+        builder.HasIndex(x => x.RoomCode)
+            .IsUnique();
+
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
 
