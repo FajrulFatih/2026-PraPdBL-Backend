@@ -75,13 +75,19 @@ public class BookingService : IBookingService
         return booking;
     }
 
-    public async Task<(Booking? booking, bool statusNotFound)> UpdateStatusAsync(int id, BookingStatusUpdateDto dto)
+    public async Task<(Booking? booking, bool statusNotFound, bool notAuthorized)> UpdateStatusAsync(int id, BookingStatusUpdateDto dto)
     {
         var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == id && b.DeletedAt == null);
-        if (booking == null) return (null, false);
+        if (booking == null) return (null, false, false);
 
         var statusExists = await _db.BookingStatuses.AnyAsync(s => s.Id == dto.StatusId);
-        if (!statusExists) return (null, true);
+        if (!statusExists) return (null, true, false);
+
+        var changedByUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == dto.ChangedBy && u.DeletedAt == null);
+        if (changedByUser == null || !string.Equals(changedByUser.Role, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        {
+            return (null, false, true);
+        }
 
         var oldStatus = booking.StatusId;
         if (oldStatus != dto.StatusId)
@@ -114,7 +120,61 @@ public class BookingService : IBookingService
             .Include(b => b.Status)
             .FirstOrDefaultAsync(b => b.Id == id && b.DeletedAt == null);
 
-        return (updated, false);
+        return (updated, false, false);
+    }
+
+    public async Task<List<BookingStatusHistoryDto>> GetStatusHistoryAsync()
+    {
+        var histories = await _db.BookingStatusHistories
+            .AsNoTracking()
+            .Include(h => h.Booking)
+            .ThenInclude(b => b.Room)
+            .Include(h => h.Booking)
+            .ThenInclude(b => b.User)
+            .Include(h => h.ChangedByUser)
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => new BookingStatusHistoryDto
+            {
+                Id = h.Id,
+                BookingId = h.BookingId,
+                OldStatusId = h.OldStatus,
+                NewStatusId = h.NewStatus,
+                ChangedById = h.ChangedBy,
+                ChangedByName = h.ChangedByUser.Name,
+                ChangedAt = h.ChangedAt,
+                Note = h.Note,
+                Room = new BookingHistoryRoomDto
+                {
+                    Id = h.Booking.RoomId,
+                    Code = h.Booking.Room.RoomCode,
+                    Name = h.Booking.Room.RoomName
+                },
+                User = new BookingHistoryUserDto
+                {
+                    Id = h.Booking.UserId,
+                    Name = h.Booking.User.Name
+                }
+            })
+            .ToListAsync();
+
+        var statusMap = await _db.BookingStatuses
+            .AsNoTracking()
+            .ToDictionaryAsync(s => s.Id, s => s.Label);
+
+        foreach (var item in histories)
+        {
+            if (statusMap.TryGetValue(item.OldStatusId, out var oldLabel))
+            {
+                item.OldStatusLabel = oldLabel;
+            }
+
+            if (statusMap.TryGetValue(item.NewStatusId, out var newLabel))
+            {
+                item.NewStatusLabel = newLabel;
+            }
+        }
+
+        return histories;
     }
 
     public async Task<bool> DeleteAsync(int id)
