@@ -14,7 +14,6 @@ Backend service for Project PraPdBL. This service provides REST APIs for core do
 - ASP.NET Core (.NET 9)
 - Entity Framework Core 9
 - Pomelo MySQL provider
-- Azure AD (Microsoft Identity Web)
 
 ## Installation
 1. Install .NET SDK 9.
@@ -33,10 +32,6 @@ Backend service for Project PraPdBL. This service provides REST APIs for core do
 Configuration can be set via `appsettings.json`, `appsettings.Development.json`, or User Secrets.
 
 - `ConnectionStrings__DefaultConnection`: MySQL connection string.
-- `AzureAd__Instance`: Azure AD instance URL.
-- `AzureAd__Domain`: Azure AD domain.
-- `AzureAd__TenantId`: Azure AD tenant ID.
-- `AzureAd__ClientId`: Azure AD client ID.
 - `AzureAd__Scopes`: API scopes.
 - `AzureAd__CallbackPath`: OIDC callback path.
 - `Cors__AllowedOrigins`: Allowed CORS origins array.
@@ -46,6 +41,3 @@ See the contribution guide in `../PraPdBL-Docs/CONTRIBUTING.md`.
 
 ## License
 TBD.
-
-## Credits / Author Info (optional)
-PraPdBL team.
