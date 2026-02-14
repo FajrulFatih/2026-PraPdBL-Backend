@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build output
+bin/
+obj/
+dist/
+build/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+tmp/
+temp/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Optional npm cache
+.npm
+
+# Diagnostic reports
+*.heapdump
+
+# Coverage
+coverage/
+.nyc_output/
+
+# .NET tooling
+*.user
+*.suo
+*.userosscache
+*.sln.docstates

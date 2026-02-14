@@ -1,16 +1,49 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using PraPdBL_Backend.Data;
+using PraPdBL_Backend.Services.Implementation;
+using PraPdBL_Backend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
-builder.Services.AddControllers();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    {
+        options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+        )
+        );
+    });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<IUserService, UserService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddCors(options =>
+{
+    var origins = builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? Array.Empty<string>();
+
+    options.AddPolicy("Frontend", policy =>
+        policy.WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 var app = builder.Build();
 
@@ -20,9 +53,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+DbInitializer.SeedAdmin(app.Services);
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseCors("Frontend");
 
 app.MapControllers();
 
